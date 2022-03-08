@@ -10,7 +10,7 @@ let state =
     {
         teacherId:  "",
         jobTimer:  false,        
-        intervalTimer:  2000,
+        intervalTimer:  5000,
         users: [],
     }
 
