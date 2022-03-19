@@ -1,6 +1,7 @@
 const { Telegraf, Markup } = require('telegraf')
 require('dotenv').config()
 const text = require('./const')
+const wordsRemBox = require('./words')
 
 const bot = new Telegraf(process.env.BOT_TOKEN)
 bot.start((ctx) => ctx.reply(`Привет ${ctx.message.from.first_name ? ctx.message.from.first_name: 'noname'}`))
@@ -9,7 +10,9 @@ bot.help((ctx) => ctx.reply(text.commands))
 let state = 
     {
         teacherId:  "",
-        jobTimer:  false,        
+        teacherIdRmb:  "",
+        jobTimer:  false,
+        jobTimerRmb:  false,         
         intervalTimer:  1200000,
         users: [],
     }
@@ -27,6 +30,19 @@ bot.command('go', async (ctx) => {
     //console.log(state)
 })
 
+bot.command('gormb', async (ctx) => {
+    try{                 
+        await addUser(ctx);
+        if(!state.jobTimerRmb) await startTeacherRmb();       
+    
+    } catch (e){
+        console.error(e)
+    }    
+    //console.log(state)
+})
+
+
+
 bot.command('can', async (ctx) => {
     try{
         await delUser(ctx);
@@ -42,7 +58,7 @@ bot.command('can', async (ctx) => {
 const startTeacher = ()=>{  
 
     state.teacherId = setInterval(() => { 
-        let word = Wordgenerator();   
+        let word = Wordgenerator(text);   
         state.users.map((user)=>{
         bot.telegram.sendMessage(user.id, word)
         })            
@@ -50,18 +66,31 @@ const startTeacher = ()=>{
         state.jobTimer = true;
 }
 
+const startTeacherRmb = ()=>{  
+
+    state.teacherIdRmb = setInterval(() => { 
+        let word = Wordgenerator(wordsRemBox);   
+        state.users.map((user)=>{
+        bot.telegram.sendMessage(user.id, word)
+        })            
+        }, state.intervalTimer);
+        state.jobTimerRmb = true;
+}
+
+
 
 const stopTeacher = (teacherId)=>{
     if (state.users.length == 0) {
         clearInterval(teacherId);
+        clearInterval(teacherIdRmb);
         state.jobTimer = false;
     }
   }
 
-const Wordgenerator = ()=>{    
-    let x = text.words.split(/^/m)[getRandomIntInclusive(0, 499)]
-    //console.log(x)
-   return x;
+const Wordgenerator = (text)=>{ 
+    let word = text.words.split(/^/m);    
+    return  word[getRandomIntInclusive(0, word.length-1)];
+    //console.log(x)   
 } 
  
 
